@@ -1,1 +1,6 @@
-
+fastapi==0.95.2
+uvicorn==0.22.0
+pydantic==1.10.2
+google-auth==2.16.0
+google-auth-oauthlib==0.5.2
+google-api-python-client==2.79.0
