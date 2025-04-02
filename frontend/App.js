@@ -1,9 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import ParentDashboardScreen from './screens/ParentDashboardScreen';
-import PlannerScreen from './screens/PlannerScreen';
-import StudentListScreen from './screens/StudentListScreen';
+import MainTabs from './navigation/MainTabs';
 import AddStudentScreen from './screens/AddStudentScreen';
 import useFonts from './hooks/useFonts';
 import { StatusBar } from 'expo-status-bar';
@@ -18,9 +16,7 @@ export default function App() {
     <NavigationContainer>
       <StatusBar style="auto" />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Home" component={ParentDashboardScreen} />
-        <Stack.Screen name="Planner" component={PlannerScreen} />
-        <Stack.Screen name="Students" component={StudentListScreen} />
+        <Stack.Screen name="Main" component={MainTabs} />
         <Stack.Screen name="AddStudent" component={AddStudentScreen} />
       </Stack.Navigator>
     </NavigationContainer>
