@@ -1,15 +1,20 @@
-import React from 'react';
-import { View, Text, Button } from 'react-native';
-import ScreenWrapper from '../components/ScreenWrapper';
+import useApi from '../hooks/useApi';
+import useToast from '../hooks/useToast';
+import { triggerPlanner } from '../services/PlannerService';
 
-const PlannerScreen = ({ navigation }) => {
+const PlannerScreen = () => {
+  const { callApi, loading, error } = useApi();
+  const toast = useToast();
+
+  const handlePlanner = async () => {
+    const result = await callApi(() => triggerPlanner(1)); // Replace 1 with real family_id
+    if (result) toast("Planner updated!");
+  };
+
   return (
-    <ScreenWrapper>
-      <Text className="font-bold text-lg mb-4">Planner Screen 🧩</Text>
-      <Text className="text-sm text-gray-600 mb-4">This will show AI-generated curriculum plans and yearly overview.</Text>
-      <Button title="Go Back" onPress={() => navigation.goBack()} />
-    </ScreenWrapper>
+    <>
+      <Button title={loading ? "Planning..." : "Trigger Planner"} onPress={handlePlanner} />
+      {error && toast(error)}
+    </>
   );
 };
-
-export default PlannerScreen;
