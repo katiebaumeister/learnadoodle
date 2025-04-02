@@ -245,3 +245,49 @@ def add_event_to_calendar(user_token, subject_name, subject_time, date_str):
 
     event = service.events().insert(calendarId='primary', body=event).execute()
     return event.get('htmlLink')
+# Add Student, Remove Student, and Planner Trigger API
+
+from fastapi import Body
+
+@app.post("/api/add_student")
+async def add_student(data: dict = Body(...)):
+    family_id = data.get("family_id")
+    student_data = data.get("student")
+    if not family_id or not student_data:
+        return {"error": "Missing family_id or student"}
+
+    columns = ", ".join(student_data.keys()) + ", family_id"
+    placeholders = ", ".join(["?"] * (len(student_data) + 1))
+    values = list(student_data.values()) + [family_id]
+
+    cursor.execute(f"INSERT INTO students ({columns}) VALUES ({placeholders})", values)
+    conn.commit()
+
+    return {"message": "Student added successfully."}
+
+@app.post("/api/remove_student")
+async def remove_student(data: dict = Body(...)):
+    student_id = data.get("student_id")
+    if not student_id:
+        return {"error": "Missing student_id"}
+
+    cursor.execute("DELETE FROM students WHERE student_id = ?", (student_id,))
+    cursor.execute("DELETE FROM subjects WHERE student_id = ?", (student_id,))
+    cursor.execute("DELETE FROM student_calendar WHERE student_id = ?", (student_id,))
+    cursor.execute("DELETE FROM lessons WHERE student_id = ?", (student_id,))
+    conn.commit()
+
+    return {"message": "Student removed successfully."}
+
+@app.post("/api/trigger_planner")
+async def trigger_planner(data: dict = Body(...)):
+    family_id = data.get("family_id")
+    if not family_id:
+        return {"error": "Missing family_id"}
+
+    # Call the AI directly
+    from orchestrator import orchestrate_ai
+    from ai_prompts import planning_prompt
+    result = orchestrate_ai("PlanningAI", family_id, "Please plan the year.", planning_prompt)
+
+    return {"message": "Planner AI triggered", "ai_reply": result}
