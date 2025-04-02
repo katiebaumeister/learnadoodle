@@ -1,6 +1,3 @@
-### Project: Learnadoodle AI-Powered Homeschool Calendar (Orchestrated System)
-# Description: Multi-AI Orchestrated FastAPI backend that manages adaptive homeschooling with OpenAI, Google Calendar, and Firebase Auth
-
 from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
@@ -21,7 +18,6 @@ SCOPES = ["https://www.googleapis.com/auth/calendar"]
 REDIRECT_URI = "http://localhost:8000/oauth2callback"
 
 # ----------------- DATABASE -----------------
-
 conn = sqlite3.connect("learnadoodle.db", check_same_thread=False)
 cursor = conn.cursor()
 
@@ -153,7 +149,6 @@ cursor.executescript('''
 conn.commit()
 
 # ----------------- MODELS -----------------
-
 class OnboardingInput(BaseModel):
     user_id: int
     message: str
@@ -163,8 +158,14 @@ class UpdateScheduleInput(BaseModel):
     week_of: str
     schedule: list
 
-# ----------------- ONBOARDING AI -----------------
+# ----------------- ROUTES -----------------
 
+# Default homepage route
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to Learnadoodle! AI-Powered Homeschool Calendar"}
+
+# ----------------- ONBOARDING AI -----------------
 @app.post("/ai/onboarding")
 async def onboarding_ai(input: OnboardingInput):
     # Dummy profile for testing, will be dynamic later
@@ -193,7 +194,6 @@ async def onboarding_ai(input: OnboardingInput):
         return {"error": str(e)}
 
 # ----------------- GOOGLE AUTH -----------------
-
 @app.get("/auth/google")
 async def login_with_google():
     flow = Flow.from_client_secrets_file(
@@ -227,7 +227,6 @@ async def google_callback(request: Request):
     return {"message": "Login successful", "token_data": token_data}
 
 # ----------------- UTIL -----------------
-
 def add_event_to_calendar(user_token, subject_name, subject_time, date_str):
     creds = Credentials(token=user_token)
     service = build('calendar', 'v3', credentials=creds)
