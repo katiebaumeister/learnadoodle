@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput } from 'react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
-import ButtonWithLoader from '../components/ButtonWithLoader';
+import Button from '../components/Button';
 import useStudents from '../hooks/useStudents';
 import useToast from '../hooks/useToast';
 
 const AddStudentScreen = ({ navigation }) => {
-  const family_id = 1; // Replace later with real ID
+  const family_id = 1; // dynamic later
   const { add, loading, error } = useStudents(family_id);
   const toast = useToast();
 
@@ -25,29 +25,13 @@ const AddStudentScreen = ({ navigation }) => {
     <ScreenWrapper>
       <Text className="font-bold text-lg mb-4">Add Student ➕</Text>
 
-      <TextInput
-        placeholder="Name"
-        value={name}
-        onChangeText={setName}
-        className="border rounded p-2 mb-2"
-      />
-      <TextInput
-        placeholder="Grade"
-        value={grade}
-        onChangeText={setGrade}
-        className="border rounded p-2 mb-2"
-      />
-      <TextInput
-        placeholder="Age"
-        value={age}
-        onChangeText={setAge}
-        keyboardType="numeric"
-        className="border rounded p-2 mb-4"
-      />
+      <TextInput placeholder="Name" value={name} onChangeText={setName} className="border rounded p-2 mb-2" />
+      <TextInput placeholder="Grade" value={grade} onChangeText={setGrade} className="border rounded p-2 mb-2" />
+      <TextInput placeholder="Age" value={age} onChangeText={setAge} keyboardType="numeric" className="border rounded p-2 mb-4" />
 
-      <ButtonWithLoader loading={loading} onPress={handleAdd}>
+      <Button loading={loading} onPress={handleAdd}>
         Save Student
-      </ButtonWithLoader>
+      </Button>
 
       {error && <Text className="text-red-500 mt-2">{error}</Text>}
     </ScreenWrapper>
