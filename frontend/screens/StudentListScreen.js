@@ -1,18 +1,16 @@
 import React, { useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
-import ButtonWithLoader from '../components/ButtonWithLoader';
+import Button from '../components/Button';
 import useStudents from '../hooks/useStudents';
 import useToast from '../hooks/useToast';
 
 const StudentListScreen = ({ navigation }) => {
-  const family_id = 1; // Replace later with dynamic family_id from auth
+  const family_id = 1;
   const { students, loadStudents, remove, loading, error } = useStudents(family_id);
   const toast = useToast();
 
-  useEffect(() => {
-    loadStudents();
-  }, []);
+  useEffect(() => { loadStudents(); }, []);
 
   const handleRemove = async (student_id) => {
     await remove(student_id);
@@ -23,9 +21,9 @@ const StudentListScreen = ({ navigation }) => {
     <ScreenWrapper>
       <Text className="font-bold text-lg mb-4">Your Students 👩‍🎓</Text>
 
-      <ButtonWithLoader loading={loading} onPress={() => navigation.navigate('AddStudent')}>
+      <Button loading={loading} onPress={() => navigation.navigate('AddStudent')}>
         Add Student
-      </ButtonWithLoader>
+      </Button>
 
       {error && <Text className="text-red-500 mt-2">{error}</Text>}
 
