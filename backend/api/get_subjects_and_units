@@ -1,0 +1,37 @@
+from fastapi import APIRouter
+from backend.utils.helpers import require_parent
+from backend.db.connect import Session, engine
+from backend.db.models import Students, Subjects
+
+@app.get("/api/get_subjects_and_units")
+@require_parent()
+async def get_subjects_and_units(family, decoded_token):
+    with Session(engine) as session:
+        students = session.exec(
+            select(Students).where(Students.family_id == family.family_id)
+        ).all()
+
+        all_data = []
+        for student in students:
+            subjects = session.exec(
+                select(Subjects).where(
+                    Subjects.family_id == family.family_id,
+                    Subjects.student_id == student.student_id
+                )
+            ).all()
+
+            student_block = {
+                "student": student.name,
+                "subjects": []
+            }
+
+            for subj in subjects:
+                student_block["subjects"].append({
+                    "subject": subj.subject,
+                    "objectives": subj.subject_objectives_raw,
+                    "units": subj.unit_boundaries or []
+                })
+
+            all_data.append(student_block)
+
+    return {"curriculum": all_data}
