@@ -1,24 +1,25 @@
-import { API_BASE_URL } from './apiConfig';
+import axios from 'axios';
+import { getAuth } from 'firebase/auth';
 
-// Generalized API client
-const apiClient = async (endpoint, method = 'GET', body = null) => {
-  const options = {
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000'; // Set this to your Render backend URL
+
+const apiClient = async (url, method = 'GET', data = {}) => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  const token = user ? await user.getIdToken() : null;
+
+  if (!token) throw new Error('User not authenticated');
+
+  const response = await axios({
+    url: API_URL + url,
     method,
+    data,
     headers: {
-      'Content-Type': 'application/json',
-    },
-  };
+      Authorization: `Bearer ${token}`
+    }
+  });
 
-  if (body) {
-    options.body = JSON.stringify(body);
-  }
-
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error?.message || 'API Error');
-  }
-  return response.json();
+  return response.data;
 };
 
 export default apiClient;
