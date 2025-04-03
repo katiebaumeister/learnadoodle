@@ -5,13 +5,16 @@ import {
 import ScreenWrapper from '../components/ScreenWrapper';
 import Button from '../components/Button';
 import apiClient from '../services/apiClient';
-import { exportMarkdownToPDF } from '../services/PlannerService';
-import { Picker } from '@react-native-picker/picker';
+import { exportMarkdownToPDF, markdownToHTMLPreview, generateFullMarkdown } from '../services/PlannerService';
 import { toast } from '../hooks/useToast';
+import { Picker } from '@react-native-picker/picker';
+import PreviewModal from '../components/PreviewModal';
 
 const ExportSummaryScreen = () => {
   const [data, setData] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [htmlPreview, setHtmlPreview] = useState('');
 
   useEffect(() => {
     const fetch = async () => {
@@ -39,6 +42,14 @@ const ExportSummaryScreen = () => {
     }
   };
 
+  const handlePreview = async () => {
+    const studentData = data.students.find(s => s.student === selectedStudent);
+    const markdown = generateFullMarkdown(data, studentData);
+    const html = markdownToHTMLPreview(markdown);
+    setHtmlPreview(html);
+    setPreviewVisible(true);
+  };
+
   if (!data) return <ScreenWrapper><Text>Loading...</Text></ScreenWrapper>;
 
   return (
@@ -57,7 +68,14 @@ const ExportSummaryScreen = () => {
         </Picker>
       </View>
 
+      <Button onPress={handlePreview} className="mb-2">👁 Preview Before Export</Button>
       <Button onPress={handleExport}>📄 Export Summary PDF</Button>
+
+      <PreviewModal
+        visible={previewVisible}
+        onClose={() => setPreviewVisible(false)}
+        htmlContent={htmlPreview}
+      />
     </ScreenWrapper>
   );
 };
