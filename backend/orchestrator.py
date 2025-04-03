@@ -49,3 +49,13 @@ def get_records(family_id: int):
             for r in records
         ]}
 
+@app.post("/api/generate_journal")
+def generate_journal(req: dict):
+    # Here you would trigger Journal AI in production
+    return {"message": "Journal generated!"}
+
+@app.post("/api/generate_report")
+def generate_report(req: dict):
+    # Here you would trigger Report AI in production
+    return {"message": "Report generated!"}
+
