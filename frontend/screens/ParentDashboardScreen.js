@@ -1,42 +1,98 @@
-import React from 'react';
-import { View } from 'react-native';
-import ScreenWrapper from '../components/ScreenWrapper';
-import CalendarBar from '../components/CalendarBar';
-import ProgressTracker from '../components/ProgressTracker';
-import Button from '../components/Button';
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { copilot, CopilotStep, walkthroughable } from 'react-native-copilot';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const ParentDashboardScreen = () => {
-  const navigation = useNavigation();
-  const family_id = 1; // replace with dynamic family_id later
+import TourModal from '../components/TourModal';
+import Button from '../components/Button';
+import ProgressTracker from '../components/ProgressTracker';
+import RecordsCard from '../components/RecordsCard';
+import WeeklySummaryCard from '../components/WeeklySummaryCard';
+import JoyCorner from '../components/JoyCorner';
+import FloatingPlannerButton from '../components/FloatingPlannerButton';
+import CustomTooltip from '../components/CustomTooltip';
+
+const WalkthroughableView = walkthroughable(View);
+
+const ParentDashboardScreen = ({ start, copilotEvents }) => {
+  const [showTour, setShowTour] = useState(false);
+
+  useEffect(() => {
+    const checkTourStatus = async () => {
+      const dismissed = await AsyncStorage.getItem('tourDismissed');
+      if (!dismissed) setShowTour(true);
+    };
+    checkTourStatus();
+  }, []);
+
+  const handleStartTour = async () => {
+    setShowTour(false);
+    await AsyncStorage.setItem('tourDismissed', 'true');
+    start(); // starts the copilot tour
+  };
+
+  const handleSkipTour = async () => {
+    await AsyncStorage.setItem('tourDismissed', 'true');
+    setShowTour(false);
+  };
 
   return (
-    <ScreenWrapper>
-      <CalendarBar />
+    <>
+      <TourModal visible={showTour} onStart={handleStartTour} onSkip={handleSkipTour} />
 
-      <ProgressTracker family_id={family_id} />
+      <ScrollView className="p-4">
+        <CopilotStep text="Track weekly learning progress across subjects." order={1} name="progress">
+          <WalkthroughableView>
+            <ProgressTracker />
+          </WalkthroughableView>
+        </CopilotStep>
 
-      <View className="mt-4 space-y-3">
+        <CopilotStep text="Check what’s planned for this week." order={2} name="weekly-summary">
+          <WalkthroughableView className="mt-6">
+            <WeeklySummaryCard />
+          </WalkthroughableView>
+        </CopilotStep>
 
-        <Button onPress={() => navigation.navigate('Planner')}>
-          Open Planner ✨
-        </Button>
+        <CopilotStep text="Explore fun or shared learning moments here." order={3} name="joy-corner">
+          <WalkthroughableView className="mt-6">
+            <JoyCorner />
+          </WalkthroughableView>
+        </CopilotStep>
 
-        <Button onPress={() => navigation.navigate('Students')}>
-          Manage Students 👩‍🎓
-        </Button>
+        <CopilotStep text="Manage student records, journals, and reports." order={4} name="records">
+          <WalkthroughableView className="mt-6">
+            <RecordsCard />
+          </WalkthroughableView>
+        </CopilotStep>
 
-        <Button onPress={() => navigation.navigate('Reports')}>
-          Reports 📚
-        </Button>
+        <TouchableOpacity
+          className="mt-6"
+          onPress={async () => {
+            await AsyncStorage.removeItem('tourDismissed');
+            start();
+          }}
+        >
+          <Text className="text-sm text-indigo-400 text-center">Restart Tour</Text>
+        </TouchableOpacity>
+      </ScrollView>
 
-        <Button onPress={() => navigation.navigate('JoyCorner')}>
-          Joy Corner 💖
-        </Button>
-
-      </View>
-    </ScreenWrapper>
+      <CopilotStep text="Tap to launch your AI-powered planner." order={5} name="planner-button">
+        <WalkthroughableView>
+          <FloatingPlannerButton />
+        </WalkthroughableView>
+      </CopilotStep>
+    </>
   );
 };
 
-export default ParentDashboardScreen;
+export default copilot({
+  overlay: 'svg',
+  animated: true,
+  tooltipComponent: CustomTooltip,
+  tooltipStyle: {
+    backgroundColor: '#F8F4FF',
+    borderRadius: 20,
+    padding: 14,
+  },
+  stepNumberComponent: () => null,
+})(ParentDashboardScreen);
