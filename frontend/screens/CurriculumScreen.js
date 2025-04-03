@@ -8,8 +8,13 @@ import {
 } from 'react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Button from '../components/Button';
-import { getCurriculum, curriculumToMarkdown } from '../services/PlannerService';
+import {
+  getCurriculum,
+  curriculumToMarkdown,
+  exportMarkdownToPDF,
+} from '../services/PlannerService';
 import apiClient from '../services/apiClient';
+import { toast } from '../hooks/useToast';
 
 const CurriculumScreen = () => {
   const [curriculum, setCurriculum] = useState([]);
@@ -43,7 +48,7 @@ const CurriculumScreen = () => {
                 subject,
                 objectives: newText,
               });
-              Alert.alert('Saved', 'Objectives updated.');
+              toast('✏️ Objectives updated!');
             } catch {
               Alert.alert('Error', 'Could not save changes.');
             }
@@ -59,11 +64,11 @@ const CurriculumScreen = () => {
     try {
       const res = await getCurriculum();
       const markdown = curriculumToMarkdown(res.curriculum);
-      console.log('Exported Markdown:\n', markdown);
-      Alert.alert('Exported', 'Curriculum markdown is ready. (View console)');
-      // Optional: use Share API or save to file system here
-    } catch {
-      Alert.alert('Error', 'Export failed.');
+      await exportMarkdownToPDF(markdown, 'Learnadoodle-Curriculum');
+      toast('📄 Curriculum exported as PDF');
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Error', 'Could not export PDF');
     }
   };
 
@@ -74,26 +79,42 @@ const CurriculumScreen = () => {
       <ScrollView>
         {curriculum.map((block, idx) => (
           <View key={idx} className="mb-6">
-            <Text className="text-lg font-bold text-indigo-700 mb-2">{block.student}</Text>
+            <Text className="text-lg font-bold text-indigo-700 mb-2">
+              {block.student}
+            </Text>
 
             {block.subjects.map((subject, i) => (
-              <View key={i} className="mb-4 border-b pb-3 border-gray-200">
+              <View
+                key={i}
+                className="mb-4 border-b pb-3 border-gray-200"
+              >
                 <View className="flex-row justify-between items-center mb-1">
-                  <Text className="font-semibold text-base">📖 {subject.subject}</Text>
+                  <Text className="font-semibold text-base">
+                    📖 {subject.subject}
+                  </Text>
                   <TouchableOpacity
                     onPress={() =>
-                      editSubjectObjective(block.student, subject.subject, subject.objectives)
+                      editSubjectObjective(
+                        block.student,
+                        subject.subject,
+                        subject.objectives
+                      )
                     }
                   >
                     <Text className="text-xs text-indigo-500">Edit</Text>
                   </TouchableOpacity>
                 </View>
+
                 <Text className="text-sm text-gray-600 mb-2">
                   {subject.objectives || 'No objectives yet.'}
                 </Text>
+
                 <View className="pl-2">
                   {subject.units?.map((u, j) => (
-                    <Text key={j} className="text-sm text-gray-800 mb-1">
+                    <Text
+                      key={j}
+                      className="text-sm text-gray-800 mb-1"
+                    >
                       • {u.unit}: {u.description}
                     </Text>
                   ))}
