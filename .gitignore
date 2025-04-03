@@ -1,6 +1,21 @@
-*.pyc
-*.pyo
-*.db
-__pycache__/
-client_secret.json 
+# Node
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Expo
+.expo/
+.expo-shared/
+dist/
+web-build/
+.DS_Store
+
+# Env & API keys
 .env
+.env.local
+.env.production
+
+# System
+.idea/
+.vscode/
