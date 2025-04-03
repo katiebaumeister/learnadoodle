@@ -10,6 +10,17 @@ from sqlmodel import Session, select
 from backend.db.connect import engine
 from backend.db.models import Students, Subjects, Lessons, Family
 from backend.auth.firebase_auth import require_parent
+from backend.api import curriculum, utility, students, planner, joy, progress
+
+app = FastAPI()
+
+# Include all routers
+app.include_router(utility.router, prefix="/api")
+app.include_router(curriculum.router, prefix="/api")
+app.include_router(students.router, prefix="/api")
+app.include_router(planner.router, prefix="/api")
+app.include_router(joy.router, prefix="/api")
+app.include_router(progress.router, prefix="/api")
 
 app = FastAPI()
 
