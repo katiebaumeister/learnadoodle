@@ -51,3 +51,17 @@ async def update_family(data: dict = Body(...), user=Depends(verify_token)):
     cursor.execute("UPDATE family SET name_parent = ? WHERE family_id = ?", (data["name_parent"], data["family_id"]))
     conn.commit()
     return {"message": "Family updated."}
+
+@app.get("/api/get_progress")
+def get_progress(family_id: int):
+    with Session(engine) as session:
+        total_days = session.exec(select(Family.total_school_days).where(Family.family_id == family_id)).first()
+        completed_days = session.exec(
+            select(func.count()).select_from(StudentCalendar)
+            .where(StudentCalendar.family_id == family_id)
+            .where(StudentCalendar.curriculum_day.isnot(None))
+            .where(StudentCalendar.date <= datetime.date.today())
+            .where(StudentCalendar.is_school_day == True)
+        ).first()
+    return {"completed_days": completed_days or 0, "total_days": total_days or 0}
+
