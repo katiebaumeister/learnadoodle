@@ -1,13 +1,22 @@
-from fastapi import Depends, HTTPException
-from firebase_admin import auth as firebase_auth
+import firebase_admin
+from firebase_admin import auth, credentials
+from fastapi import HTTPException, Header
+from functools import wraps
+import os
+import json
 
-def verify_token(authorization: str = Depends(lambda: None)):
-    # For local dev
-    if os.getenv("ENVIRONMENT") == "DEV":
-        return {"user_id": "dev-user"}
-    # Real verification
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing or invalid token")
-    token = authorization.replace("Bearer ", "")
-    decoded_token = firebase_auth.verify_id_token(token)
-    return decoded_token
+# Load Firebase service account JSON from env
+FIREBASE_JSON = os.getenv("FIREBASE_JSON")
+
+if FIREBASE_JSON:
+    cred = credentials.Certificate(json.loads(FIREBASE_JSON))
+    firebase_admin.initialize_app(cred)
+else:
+    raise Exception("FIREBASE_JSON not set")
+
+def verify_firebase_token(token: str):
+    try:
+        decoded_token = auth.verify_id_token(token)
+        return decoded_token
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid Firebase token")
