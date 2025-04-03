@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
 import { getCurriculum } from '../services/PlannerService';
+import { TextInput, Alert, TouchableOpacity } from 'react-native';
+
 
 const CurriculumScreen = () => {
   const [curriculum, setCurriculum] = useState([]);
