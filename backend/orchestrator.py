@@ -23,7 +23,7 @@ async def handle_ai_flow(agent_name: str, data: dict):
 
 @app.get("/api/joy_corner")
 def joy_corner(family_id: int):
-    # 🟣 You will eventually hook this into AI
+    # Eventually hook this into AI
     fun_activities = [
         "Outdoor scavenger hunt 🐾",
         "Build a baking soda volcano 🌋",
@@ -32,3 +32,20 @@ def joy_corner(family_id: int):
         "Family science trivia night 🧪"
     ]
     return {"activities": fun_activities}
+
+@app.get("/api/get_records")
+def get_records(family_id: int):
+    with Session(engine) as session:
+        records = session.exec(
+            select(Journal).where(Journal.family_id == family_id)
+        ).all()
+        return {"records": [
+            {
+                "record_id": r.journal_id,
+                "title": f"Journal {r.course_year}",
+                "description": r.course_year,
+                "pdf_url": r.pdf_url
+            }
+            for r in records
+        ]}
+
