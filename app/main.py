@@ -1,8 +1,6 @@
 # ✅ main.py — Full Learnadoodle FastAPI Backend Entry
 import sys
 import os
-
-# 👇 Add this so you can import from root
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from backend.db.connect import engine
