@@ -1,5 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import RecordsCornerScreen from '../screens/RecordsCornerScreen';
 import ParentDashboardScreen from '../screens/ParentDashboardScreen';
 import PlannerScreen from '../screens/PlannerScreen';
 import StudentListScreen from '../screens/StudentListScreen';
