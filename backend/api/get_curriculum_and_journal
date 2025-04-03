@@ -1,0 +1,59 @@
+# main.py or routes/curriculum.py depending on structure
+
+from fastapi import APIRouter, HTTPException
+from sqlmodel import Session, select
+
+from backend.db.connect import engine
+from backend.db.models import Students, Subjects, Lessons, Family
+from backend.auth.firebase_auth import require_parent
+
+router = APIRouter()
+
+@router.get("/api/get_curriculum_and_journal")
+@require_parent()
+async def get_curriculum_and_journal(family, decoded_token):
+    with Session(engine) as session:
+        students = session.exec(
+            select(Students).where(Students.family_id == family.family_id)
+        ).all()
+
+        output = []
+        for student in students:
+            subjects = session.exec(
+                select(Subjects).where(
+                    Subjects.family_id == family.family_id,
+                    Subjects.student_id == student.student_id
+                )
+            ).all()
+
+            lessons = session.exec(
+                select(Lessons).where(
+                    Lessons.family_id == family.family_id,
+                    Lessons.student_id == student.student_id
+                )
+            ).all()
+
+            journal = {}
+            for lesson in lessons:
+                subject = lesson.subject
+                week = f"Week {lesson.curriculum_day // 5 + 1}"
+                journal.setdefault(subject, {}).setdefault(week, []).append(
+                    lesson.lesson_overview
+                )
+
+            output.append({
+                "student": student.name,
+                "grade": student.grade_base,
+                "subjects": [{
+                    "subject": s.subject,
+                    "objectives": s.subject_objectives_raw,
+                    "units": s.unit_boundaries or []
+                } for s in subjects],
+                "journal": journal,
+            })
+
+    return {
+        "family": family.name_parent,
+        "academic_year": f"{family.academic_year_start} – {family.academic_year_end}",
+        "students": output
+    }
