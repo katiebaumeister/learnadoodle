@@ -1,61 +1,42 @@
-import openai
-import os
-from fastapi import HTTPException
-from db.connect import cursor, conn
-from utils.helpers import get_snapshot
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+from backend.ai import onboarding, planner, builder, validator, lesson_ai, fun_ai, journal_ai, report_ai
+from backend.auth import firebase_auth
+from backend.db import connect
+from backend.utils import helpers
 
-agent_registry = {}
+app = FastAPI()
 
-def ai_agent(agent_name):
-    def decorator(func):
-        agent_registry[agent_name] = func
-        return func
-    return decorator
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Replace with your frontend domain later
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-async def handle_ai_flow(agent_name: str, data: dict):
-    if agent_name not in agent_registry:
-        raise HTTPException(status_code=404, detail=f"Agent '{agent_name}' not found")
+@app.get("/")
+def read_root():
+    return {"message": "Learnadoodle API is running"}
 
-    snapshot = await get_snapshot(data.get("family_id"))
-    return await agent_registry[agent_name](data, snapshot)
+@app.get("/healthcheck")
+def healthcheck():
+    return {"status": "healthy"}
 
-@app.get("/api/joy_corner")
-def joy_corner(family_id: int):
-    # Eventually hook this into AI
-    fun_activities = [
-        "Outdoor scavenger hunt 🐾",
-        "Build a baking soda volcano 🌋",
-        "Local museum visit 🎨",
-        "Nature journal sketching 🍃",
-        "Family science trivia night 🧪"
-    ]
-    return {"activities": fun_activities}
+# -----------------------------
+# ✅ import AI routes here
+# -----------------------------
 
-@app.get("/api/get_records")
-def get_records(family_id: int):
-    with Session(engine) as session:
-        records = session.exec(
-            select(Journal).where(Journal.family_id == family_id)
-        ).all()
-        return {"records": [
-            {
-                "record_id": r.journal_id,
-                "title": f"Journal {r.course_year}",
-                "description": r.course_year,
-                "pdf_url": r.pdf_url
-            }
-            for r in records
-        ]}
+app.include_router(onboarding.router, prefix="/ai")
+app.include_router(planner.router, prefix="/ai")
+app.include_router(builder.router, prefix="/ai")
+app.include_router(validator.router, prefix="/ai")
+app.include_router(lesson_ai.router, prefix="/ai")
+app.include_router(fun_ai.router, prefix="/ai")
+app.include_router(journal_ai.router, prefix="/ai")
+app.include_router(report_ai.router, prefix="/ai")
 
-@app.post("/api/generate_journal")
-def generate_journal(req: dict):
-    # Here you would trigger Journal AI in production
-    return {"message": "Journal generated!"}
-
-@app.post("/api/generate_report")
-def generate_report(req: dict):
-    # Here you would trigger Report AI in production
-    return {"message": "Report generated!"}
-
+# -----------------------------
+# ✅ optional parent api routes later
+# -----------------------------
