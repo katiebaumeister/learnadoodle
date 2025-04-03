@@ -82,6 +82,16 @@ const MainTabs = () => {
         options={{
           tabBarIcon: ({ color, size }) => <Ionicons name="folder-outline" size={size} color={color} />,
           tabBarLabel: 'Records'
+
+      <Tab.Screen
+        name="Curriculum"
+        component={CurriculumScreen}
+        options={{
+          tabBarLabel: 'Curriculum',
+          tabBarIcon: ({ color, size }) => <BookIcon color={color} size={size} />,
+  }}
+/>
+
   }}
 />
 
@@ -90,3 +100,4 @@ const MainTabs = () => {
 };
 
 export default MainTabs;
+
