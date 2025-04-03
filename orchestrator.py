@@ -40,3 +40,16 @@ app.include_router(report_ai.router, prefix="/ai")
 # -----------------------------
 # ✅ optional parent api routes later
 # -----------------------------
+from fastapi import Depends, Header
+from backend.auth.firebase_auth import verify_firebase_token
+
+@app.get("/api/secure_parent_data")
+def secure_data(authorization: str = Header(...)):
+    # Extract Bearer token
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing Bearer token")
+    token = authorization.replace("Bearer ", "")
+    decoded_token = verify_firebase_token(token)
+    
+    # decoded_token contains user info from Firebase
+    return {"message": "Secure data", "uid": decoded_token.get("uid"), "email": decoded_token.get("email")}
