@@ -1,0 +1,31 @@
+@app.post("/api/update_subject_objective")
+@require_parent()
+async def update_subject_objective(data: dict, family, decoded_token):
+    student_name = data["student"]
+    subject_name = data["subject"]
+    new_objectives = data["objectives"]
+
+    with Session(engine) as session:
+        student = session.exec(
+            select(Students).where(
+                Students.family_id == family.family_id,
+                Students.name == student_name
+            )
+        ).first()
+        if not student:
+            raise HTTPException(404, "Student not found")
+
+        subject = session.exec(
+            select(Subjects).where(
+                Subjects.student_id == student.student_id,
+                Subjects.subject == subject_name
+            )
+        ).first()
+        if not subject:
+            raise HTTPException(404, "Subject not found")
+
+        subject.subject_objectives_raw = new_objectives
+        session.add(subject)
+        session.commit()
+
+    return {"message": "Objectives updated"}
