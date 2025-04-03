@@ -75,6 +75,15 @@ const MainTabs = () => {
           tabBarLabel: 'Reports'
         }}
       />
+      <Tab.Screen
+        name="Records"
+        component={RecordsCornerScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => <Ionicons name="folder-outline" size={size} color={color} />,
+          tabBarLabel: 'Records'
+  }}
+/>
+
     </Tab.Navigator>
   );
 };
