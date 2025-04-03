@@ -1,24 +1,76 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
-import { getCurriculum } from '../services/PlannerService';
-import { TextInput, Alert, TouchableOpacity } from 'react-native';
-
+import Button from '../components/Button';
+import { getCurriculum, curriculumToMarkdown } from '../services/PlannerService';
+import apiClient from '../services/apiClient';
 
 const CurriculumScreen = () => {
   const [curriculum, setCurriculum] = useState([]);
 
   useEffect(() => {
     const fetch = async () => {
-      const res = await getCurriculum();
-      setCurriculum(res.curriculum);
+      try {
+        const res = await getCurriculum();
+        setCurriculum(res.curriculum);
+      } catch (err) {
+        console.error('Error fetching curriculum:', err);
+        Alert.alert('Error', 'Unable to load curriculum data.');
+      }
     };
     fetch();
   }, []);
 
+  const editSubjectObjective = (student, subject, current) => {
+    let updatedText = current || '';
+    Alert.prompt(
+      `Edit Objectives for ${subject}`,
+      `Update the goal for ${student}'s ${subject} course.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Save',
+          onPress: async (newText) => {
+            try {
+              await apiClient('/api/update_subject_objective', 'POST', {
+                student,
+                subject,
+                objectives: newText,
+              });
+              Alert.alert('Saved', 'Objectives updated.');
+            } catch {
+              Alert.alert('Error', 'Could not save changes.');
+            }
+          },
+        },
+      ],
+      'plain-text',
+      updatedText
+    );
+  };
+
+  const handleExport = async () => {
+    try {
+      const res = await getCurriculum();
+      const markdown = curriculumToMarkdown(res.curriculum);
+      console.log('Exported Markdown:\n', markdown);
+      Alert.alert('Exported', 'Curriculum markdown is ready. (View console)');
+      // Optional: use Share API or save to file system here
+    } catch {
+      Alert.alert('Error', 'Export failed.');
+    }
+  };
+
   return (
     <ScreenWrapper>
       <Text className="text-xl font-bold mb-4">📘 Explore Curriculum</Text>
+
       <ScrollView>
         {curriculum.map((block, idx) => (
           <View key={idx} className="mb-6">
@@ -26,7 +78,16 @@ const CurriculumScreen = () => {
 
             {block.subjects.map((subject, i) => (
               <View key={i} className="mb-4 border-b pb-3 border-gray-200">
-                <Text className="font-semibold text-base mb-1">📖 {subject.subject}</Text>
+                <View className="flex-row justify-between items-center mb-1">
+                  <Text className="font-semibold text-base">📖 {subject.subject}</Text>
+                  <TouchableOpacity
+                    onPress={() =>
+                      editSubjectObjective(block.student, subject.subject, subject.objectives)
+                    }
+                  >
+                    <Text className="text-xs text-indigo-500">Edit</Text>
+                  </TouchableOpacity>
+                </View>
                 <Text className="text-sm text-gray-600 mb-2">
                   {subject.objectives || 'No objectives yet.'}
                 </Text>
@@ -42,6 +103,10 @@ const CurriculumScreen = () => {
           </View>
         ))}
       </ScrollView>
+
+      <Button className="mt-4" onPress={handleExport}>
+        📤 Export Curriculum Plan
+      </Button>
     </ScreenWrapper>
   );
 };
