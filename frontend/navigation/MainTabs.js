@@ -1,12 +1,14 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
+
 import RecordsCornerScreen from '../screens/RecordsCornerScreen';
 import ParentDashboardScreen from '../screens/ParentDashboardScreen';
 import PlannerScreen from '../screens/PlannerScreen';
 import StudentListScreen from '../screens/StudentListScreen';
 import JoyCornerScreen from '../screens/JoyCornerScreen';
 import ReportScreen from '../screens/ReportScreen';
-import { Ionicons } from '@expo/vector-icons';
+import CurriculumScreen from '../screens/CurriculumScreen'; // ✅ Add this line
 
 const Tab = createBottomTabNavigator();
 
@@ -41,7 +43,7 @@ const MainTabs = () => {
         component={ParentDashboardScreen}
         options={{
           tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
-          tabBarLabel: 'Dashboard'
+          tabBarLabel: 'Dashboard',
         }}
       />
       <Tab.Screen
@@ -49,7 +51,7 @@ const MainTabs = () => {
         component={PlannerScreen}
         options={{
           tabBarIcon: ({ color, size }) => <Ionicons name="calendar-outline" size={size} color={color} />,
-          tabBarLabel: 'Planner'
+          tabBarLabel: 'Planner',
         }}
       />
       <Tab.Screen
@@ -57,7 +59,7 @@ const MainTabs = () => {
         component={StudentListScreen}
         options={{
           tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" size={size} color={color} />,
-          tabBarLabel: 'Students'
+          tabBarLabel: 'Students',
         }}
       />
       <Tab.Screen
@@ -65,7 +67,7 @@ const MainTabs = () => {
         component={JoyCornerScreen}
         options={{
           tabBarIcon: ({ color, size }) => <Ionicons name="sparkles-outline" size={size} color={color} />,
-          tabBarLabel: 'Joy'
+          tabBarLabel: 'Joy',
         }}
       />
       <Tab.Screen
@@ -73,7 +75,7 @@ const MainTabs = () => {
         component={ReportScreen}
         options={{
           tabBarIcon: ({ color, size }) => <Ionicons name="document-text-outline" size={size} color={color} />,
-          tabBarLabel: 'Reports'
+          tabBarLabel: 'Reports',
         }}
       />
       <Tab.Screen
@@ -81,23 +83,19 @@ const MainTabs = () => {
         component={RecordsCornerScreen}
         options={{
           tabBarIcon: ({ color, size }) => <Ionicons name="folder-outline" size={size} color={color} />,
-          tabBarLabel: 'Records'
-
+          tabBarLabel: 'Records',
+        }}
+      />
       <Tab.Screen
         name="Curriculum"
         component={CurriculumScreen}
         options={{
+          tabBarIcon: ({ color, size }) => <Ionicons name="book-outline" size={size} color={color} />,
           tabBarLabel: 'Curriculum',
-          tabBarIcon: ({ color, size }) => <BookIcon color={color} size={size} />,
-  }}
-/>
-
-  }}
-/>
-
+        }}
+      />
     </Tab.Navigator>
   );
 };
 
 export default MainTabs;
-
