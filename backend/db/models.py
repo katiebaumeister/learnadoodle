@@ -38,7 +38,7 @@ class Students(SQLModel, table=True):
 class StudentCalendar(SQLModel, table=True):
     family_id: Optional[int] = Field(foreign_key="family.family_id", primary_key=True)
     student_id: Optional[int] = Field(foreign_key="students.student_id", primary_key=True)
-    date: date = Field(primary_key=True)
+    calendar_date: date = Field(primary_key=True)
     day_of_week: Optional[str]
     is_school_day: Optional[bool]
     curriculum_day: Optional[int]
