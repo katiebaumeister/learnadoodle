@@ -1,6 +1,8 @@
 // frontend/utils/api.js
-import { getIdToken } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
+import Constants from 'expo-constants';
+
+const BASE_URL = Constants.expoConfig.extra.apiBaseUrl;
 
 export const api = async (url, method = 'GET', data = null) => {
   const user = auth.currentUser;
@@ -8,13 +10,13 @@ export const api = async (url, method = 'GET', data = null) => {
 
   const idToken = await user.getIdToken();
 
-  const res = await fetch(`https://your-api.onrender.com${url}`, {
+  const res = await fetch(`${BASE_URL}${url}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${idToken}`
+      Authorization: `Bearer ${idToken}`,
     },
-    ...(data && { body: JSON.stringify(data) })
+    ...(data && { body: JSON.stringify(data) }),
   });
 
   if (!res.ok) {
@@ -24,3 +26,4 @@ export const api = async (url, method = 'GET', data = null) => {
 
   return res.json();
 };
+
