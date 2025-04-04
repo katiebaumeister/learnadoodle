@@ -1,6 +1,6 @@
+// frontend/screens/HomeScreen.js
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Alert } from 'react-native';
+import { View, Text } from 'react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
 import CalendarBar from '../components/CalendarBar';
 import JoyCorner from '../components/JoyCorner';
@@ -8,29 +8,24 @@ import LearningLogger from '../components/LearningLogger';
 import WeeklySummaryCard from '../components/WeeklySummaryCard';
 import ProgressRing from '../components/ProgressRing';
 import FloatingPlannerButton from '../components/FloatingPlannerButton';
-import { API_URL } from '../constants';
+import { api } from '../utils/api';
 
 const HomeScreen = ({ navigation }) => {
   const [familyData, setFamilyData] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const loadData = async () => {
       try {
-        // You can replace the token with one from Firebase auth
-        const token = "YOUR_FIREBASE_TOKEN"; // You'll want to dynamically fetch this
-        const response = await axios.get(`${API_URL}/get_curriculum_and_journal`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setFamilyData(response.data);
-      } catch (error) {
-        console.error("Failed to fetch family data", error);
-        Alert.alert("Error", "Failed to load data from server");
+        const data = await api('/get_curriculum_and_journal');
+        setFamilyData(data);
+      } catch (err) {
+        console.error('Error fetching data:', err.message);
+        setError(err.message);
       }
     };
 
-    fetchData();
+    loadData();
   }, []);
 
   return (
@@ -38,9 +33,18 @@ const HomeScreen = ({ navigation }) => {
       <CalendarBar />
       <ProgressRing />
       <JoyCorner />
-      <WeeklySummaryCard familyData={familyData} />
+      <WeeklySummaryCard />
       <LearningLogger />
       <FloatingPlannerButton onPress={() => navigation.navigate('Planner')} />
+      {error && <Text style={{ color: 'red' }}>{error}</Text>}
+      {familyData && (
+        <View style={{ padding: 10 }}>
+          <Text style={{ fontWeight: 'bold' }}>
+            Welcome, {familyData.family}!
+          </Text>
+          <Text>Students: {familyData.students?.length}</Text>
+        </View>
+      )}
     </ScreenWrapper>
   );
 };
