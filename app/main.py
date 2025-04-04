@@ -1,122 +1,59 @@
-# ✅ main.py — Full Learnadoodle FastAPI Backend Entry
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from backend.db.connect import engine
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import Session, select
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.requests import Request
+
+from sqlmodel import SQLModel
+
 from backend.db.connect import engine
-from backend.db.models import Students, Subjects, Lessons, Family
-from backend.auth.firebase_auth import require_parent
-from backend.api import curriculum, utility, students, planner, joy, progress
+from backend.api import (
+    curriculum,
+    utility,
+    students,
+    planner,
+    joy,
+    progress
+)
 
-app = FastAPI()
+app = FastAPI(title="Learnadoodle API", version="0.1.0")
 
-# Include all routers
-app.include_router(utility.router, prefix="/api")
-app.include_router(curriculum.router, prefix="/api")
-app.include_router(students.router, prefix="/api")
-app.include_router(planner.router, prefix="/api")
-app.include_router(joy.router, prefix="/api")
-app.include_router(progress.router, prefix="/api")
-
-app = FastAPI()
-
-# CORS middleware
+# Enable CORS (adjust origins for production)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Update this with your frontend URL in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ✅ Healthcheck
-@app.get("/healthcheck")
-async def healthcheck():
-    return {"status": "ok"}
+# Create DB tables
+@app.on_event("startup")
+def on_startup():
+    SQLModel.metadata.create_all(engine)
 
-# ✅ Update Subject Objective
-@app.post("/api/update_subject_objective")
-@require_parent()
-async def update_subject_objective(data: dict, family, decoded_token):
-    student_name = data["student"]
-    subject_name = data["subject"]
-    new_objectives = data["objectives"]
 
-    with Session(engine) as session:
-        student = session.exec(
-            select(Students).where(
-                Students.family_id == family.family_id,
-                Students.name == student_name
-            )
-        ).first()
-        if not student:
-            raise HTTPException(404, "Student not found")
+# Global exception handler for validation errors
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": exc.errors(),
+            "body": exc.body,
+            "message": "Validation error occurred"
+        },
+    )
 
-        subject = session.exec(
-            select(Subjects).where(
-                Subjects.student_id == student.student_id,
-                Subjects.subject == subject_name
-            )
-        ).first()
-        if not subject:
-            raise HTTPException(404, "Subject not found")
+# Optional root endpoint
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Learnadoodle API"}
 
-        subject.subject_objectives_raw = new_objectives
-        session.add(subject)
-        session.commit()
-
-    return {"message": "Objectives updated"}
-
-# ✅ Get Curriculum and Journal Combined
-@app.get("/api/get_curriculum_and_journal")
-@require_parent()
-async def get_curriculum_and_journal(family, decoded_token):
-    with Session(engine) as session:
-        students = session.exec(
-            select(Students).where(Students.family_id == family.family_id)
-        ).all()
-
-        output = []
-        for student in students:
-            subjects = session.exec(
-                select(Subjects).where(
-                    Subjects.family_id == family.family_id,
-                    Subjects.student_id == student.student_id
-                )
-            ).all()
-
-            lessons = session.exec(
-                select(Lessons).where(
-                    Lessons.family_id == family.family_id,
-                    Lessons.student_id == student.student_id
-                )
-            ).all()
-
-            journal = {}
-            for lesson in lessons:
-                subject = lesson.subject
-                week = f"Week {lesson.curriculum_day // 5 + 1}"
-                journal.setdefault(subject, {}).setdefault(week, []).append(
-                    lesson.lesson_overview
-                )
-
-            output.append({
-                "student": student.name,
-                "grade": student.grade_base,
-                "subjects": [{
-                    "subject": s.subject,
-                    "objectives": s.subject_objectives_raw,
-                    "units": s.unit_boundaries or []
-                } for s in subjects],
-                "journal": journal,
-            })
-
-    return {
-        "family": family.name_parent,
-        "academic_year": f"{family.academic_year_start} – {family.academic_year_end}",
-        "students": output
-    }
+# Include modular routers
+app.include_router(curriculum.router, prefix="/api", tags=["curriculum"])
+app.include_router(utility.router, prefix="/api", tags=["utility"])
+app.include_router(students.router, prefix="/api", tags=["students"])
+app.include_router(planner.router, prefix="/api", tags=["planner"])
+app.include_router(joy.router, prefix="/api", tags=["joy"])
+app.include_router(progress.router, prefix="/api", tags=["progress"])
