@@ -1,38 +1,37 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, Text, StyleSheet } from 'react-native';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebaseConfig';
+import { signInWithEmailAndPassword, getAuth } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SignInScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const auth = getAuth();
 
   const handleSignIn = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigation.replace('Home');
-    } catch (err) {
-      setError(err.message);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const token = await userCredential.user.getIdToken();
+      await AsyncStorage.setItem('firebaseToken', token);
+    } catch (error) {
+      console.log(error.message);
     }
   };
 
   return (
     <View style={styles.container}>
-      <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} />
-      <TextInput placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <TextInput placeholder="Email" onChangeText={setEmail} value={email} style={styles.input} />
+      <TextInput placeholder="Password" onChangeText={setPassword} value={password} secureTextEntry style={styles.input} />
       <Button title="Sign In" onPress={handleSignIn} />
-      <Text style={styles.switch} onPress={() => navigation.navigate('SignUp')}>Don't have an account? Sign Up</Text>
+      <Text onPress={() => navigation.navigate('SignUp')} style={styles.link}>Don't have an account? Sign up</Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20 },
-  input: { borderWidth: 1, marginBottom: 10, padding: 10, borderRadius: 5 },
-  error: { color: 'red', marginBottom: 10 },
-  switch: { marginTop: 10, textAlign: 'center', color: 'blue' },
+  container: { padding: 20, flex: 1, justifyContent: 'center' },
+  input: { borderWidth: 1, marginVertical: 10, padding: 10 },
+  link: { marginTop: 10, color: 'blue', textAlign: 'center' },
 });
 
 export default SignInScreen;
