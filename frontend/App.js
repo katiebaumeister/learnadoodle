@@ -1,35 +1,51 @@
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { onAuthStateChanged, getAuth } from 'firebase/auth';
+import { FirebaseAppProvider } from './firebaseConfig';
+import { AuthProvider } from './context/AuthContext';
+
 import HomeScreen from './screens/HomeScreen';
+import PlannerScreen from './screens/PlannerScreen';
 import SignInScreen from './screens/SignInScreen';
 import SignUpScreen from './screens/SignUpScreen';
-import PlannerScreen from './screens/PlannerScreen';
 
 const Stack = createNativeStackNavigator();
+const auth = getAuth();
 
 export default function App() {
-  const [initialRoute, setInitialRoute] = useState(null);
+  const [user, setUser] = useState(null);
+  const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = await AsyncStorage.getItem('firebase_token');
-      setInitialRoute(token ? 'Home' : 'SignIn');
-    };
-    checkAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      if (initializing) setInitializing(false);
+    });
+    return () => unsubscribe();
   }, []);
 
-  if (!initialRoute) return null; // Prevent flicker while checking token
+  if (initializing) return null;
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName={initialRoute}>
-        <Stack.Screen name="SignIn" component={SignInScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} options={{ title: 'Sign Up' }} />
-        <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Planner" component={PlannerScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <FirebaseAppProvider>
+      <AuthProvider>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {user ? (
+              <>
+                <Stack.Screen name="Home" component={HomeScreen} />
+                <Stack.Screen name="Planner" component={PlannerScreen} />
+              </>
+            ) : (
+              <>
+                <Stack.Screen name="SignIn" component={SignInScreen} />
+                <Stack.Screen name="SignUp" component={SignUpScreen} />
+              </>
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AuthProvider>
+    </FirebaseAppProvider>
   );
 }
