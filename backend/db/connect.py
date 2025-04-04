@@ -13,3 +13,5 @@ else:
 
 # ✅ Create the SQLModel engine
 engine = create_engine(DATABASE_URL, connect_args=connect_args)
+def get_session():
+    return Session(engine)
