@@ -1,5 +1,5 @@
 import os
-from sqlmodel import create_engine
+from sqlmodel import create_engine, Session  
 
 # ✅ Use DATABASE_URL from .env if available (Render or Postgres)
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -13,5 +13,7 @@ else:
 
 # ✅ Create the SQLModel engine
 engine = create_engine(DATABASE_URL, connect_args=connect_args)
+
+# ✅ Return a session
 def get_session():
     return Session(engine)
