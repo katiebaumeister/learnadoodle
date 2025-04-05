@@ -19,21 +19,25 @@ from backend.api import (
 
 app = FastAPI(title="Learnadoodle API", version="0.1.0")
 
-# Enable CORS (adjust origins for production)
+# ✅ Enable CORS with specific allowed origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Update this with your frontend URL in production
+    allow_origins=[
+        "http://localhost:8081",         # Expo web dev server
+        "http://localhost:19006",        # Expo dev tools
+        "https://learnadoodle.onrender.com",  # Production domain (if used in frontend)
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Create DB tables
+# ✅ Create DB tables on startup
 @app.on_event("startup")
 def on_startup():
     SQLModel.metadata.create_all(engine)
 
-# Global exception handler for validation errors
+# ✅ Global exception handler for validation errors
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     return JSONResponse(
@@ -45,12 +49,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         },
     )
 
-# Optional root endpoint
+# ✅ Optional root endpoint
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Learnadoodle API"}
 
-# Include modular routers
+# ✅ Include modular routers
 app.include_router(curriculum.router, prefix="/api", tags=["curriculum"])
 app.include_router(utility.router, prefix="/api", tags=["utility"])
 app.include_router(students.router, prefix="/api", tags=["students"])
