@@ -1,19 +1,14 @@
-import os
-from sqlmodel import create_engine, Session  
+from sqlmodel import create_engine, Session
 
-# ✅ Use DATABASE_URL from .env if available (Render or Postgres)
-DATABASE_URL = os.getenv("DATABASE_URL")
+# ✅ Local SQLite file
+DATABASE_URL = "sqlite:///./database.db"
 
-# ✅ Fallback to local SQLite if not provided
-if not DATABASE_URL:
-    DATABASE_URL = "sqlite:///database.db"
-    connect_args = {"check_same_thread": False}
-else:
-    connect_args = {}
+# ✅ Required for SQLite threading in FastAPI
+connect_args = {"check_same_thread": False}
 
-# ✅ Create the SQLModel engine
+# ✅ Create engine
 engine = create_engine(DATABASE_URL, connect_args=connect_args)
 
-# ✅ Return a session
+# ✅ Return session
 def get_session():
     return Session(engine)
