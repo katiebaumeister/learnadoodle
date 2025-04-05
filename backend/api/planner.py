@@ -1,3 +1,11 @@
+from fastapi import APIRouter, Depends
+from sqlmodel import Session, select
+from backend.db.connect import get_session
+from backend.db.models import StudentCalendar
+from backend.auth.firebase_auth import require_parent
+
+router = APIRouter()
+
 from datetime import datetime, timedelta
 from backend.db.models import Lessons
 
