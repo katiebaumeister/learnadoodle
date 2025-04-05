@@ -1,18 +1,8 @@
-from fastapi import APIRouter, Depends
-from sqlmodel import Session
-from backend.db.connect import get_session
-from backend.db.models import Family, Students, Subjects, Lessons
-from backend.auth.firebase_auth import require_parent
-from datetime import date
-
-router = APIRouter()
-
 @router.post("/seed_sample_data")
 async def seed_sample_data(
-    family=Depends(require_parent),
     session: Session = Depends(get_session)
 ):
-    family_id = family["family_id"]
+    family_id = 1  # ✅ Hardcoded for testing
 
     # Check if sample student already exists
     existing = session.query(Students).filter_by(family_id=family_id).first()
