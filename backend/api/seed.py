@@ -7,7 +7,7 @@ from datetime import date
 
 router = APIRouter()
 
-@router.post("/api/seed_sample_data")
+@router.post("/seed_sample_data")
 async def seed_sample_data(
     family=Depends(require_parent),
     session: Session = Depends(get_session)
