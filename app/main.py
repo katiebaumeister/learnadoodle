@@ -13,7 +13,8 @@ from backend.api import (
     students,
     planner,
     joy,
-    progress
+    progress,
+    seed  # ✅ Import the seed router
 )
 
 app = FastAPI(title="Learnadoodle API", version="0.1.0")
@@ -31,7 +32,6 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     SQLModel.metadata.create_all(engine)
-
 
 # Global exception handler for validation errors
 @app.exception_handler(RequestValidationError)
@@ -57,3 +57,4 @@ app.include_router(students.router, prefix="/api", tags=["students"])
 app.include_router(planner.router, prefix="/api", tags=["planner"])
 app.include_router(joy.router, prefix="/api", tags=["joy"])
 app.include_router(progress.router, prefix="/api", tags=["progress"])
+app.include_router(seed.router, prefix="/api", tags=["seed"])  # ✅ Include the seed router
