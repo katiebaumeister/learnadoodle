@@ -5,6 +5,10 @@ from fastapi.exceptions import RequestValidationError
 from starlette.requests import Request
 
 from sqlmodel import SQLModel
+from backend.api import dev_utils  # 👈 Add this with the other imports
+
+# 👇 Add this with the other include_router calls
+app.include_router(dev_utils.router, prefix="/api", tags=["dev"])
 
 from backend.db.connect import engine
 from backend.api import (
